@@ -1,469 +1,398 @@
 import React, { useState } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  FlatList, 
-  TextInput, 
-  TouchableOpacity, 
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  TextInput,
+  Pressable,
   SafeAreaView,
-  Image 
+  StatusBar
 } from 'react-native';
-
-interface Medicine {
-  id: string;
-  name: string;
-  category: string;
-  price: string;
-  description: string;
-  dosage: string;
-  manufacturer: string;
-  inStock: boolean;
-  image: string;
-}
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import ActionModal from '../Components/ActionModal';
+import { useCart } from '../Context/CartContext';
+import FloatingCart from '../Components/FloatingCart';
+import medicineService, { Medicine } from '../Services/medicineservice';
+import { ActivityIndicator } from 'react-native';
 
 const BuyMedicine = ({ navigation }: { navigation: any }) => {
+  const { totalItems } = useCart();
   const [searchQuery, setSearchQuery] = useState('');
-  const [filteredMedicines, setFilteredMedicines] = useState<Medicine[]>([]);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedMedicine, setSelectedMedicine] = useState<Medicine | null>(null);
+  const [medicines, setMedicines] = useState<Medicine[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const medicines: Medicine[] = [
-    {
-      id: '1',
-      name: 'Paracetamol 500mg',
-      category: 'Pain Relief',
-      price: '$5.99',
-      description: 'Relieves fever and mild to moderate pain',
-      dosage: '1-2 tablets every 4-6 hours',
-      manufacturer: 'Johnson & Johnson',
-      inStock: true,
-      image: '💊'
-    },
-    {
-      id: '2',
-      name: 'Ibuprofen 400mg',
-      category: 'Anti-inflammatory',
-      price: '$7.50',
-      description: 'Reduces inflammation and pain',
-      dosage: '1 tablet every 6-8 hours',
-      manufacturer: 'Pfizer',
-      inStock: true,
-      image: '💊'
-    },
-    {
-      id: '3',
-      name: 'Amoxicillin 250mg',
-      category: 'Antibiotic',
-      price: '$12.99',
-      description: 'Treats bacterial infections',
-      dosage: '1 capsule 3 times daily',
-      manufacturer: 'GlaxoSmithKline',
-      inStock: true,
-      image: '💊'
-    },
-    {
-      id: '4',
-      name: 'Omeprazole 20mg',
-      category: 'Antacid',
-      price: '$15.75',
-      description: 'Reduces stomach acid production',
-      dosage: '1 capsule daily before breakfast',
-      manufacturer: 'AstraZeneca',
-      inStock: true,
-      image: '💊'
-    },
-    {
-      id: '5',
-      name: 'Cetirizine 10mg',
-      category: 'Antihistamine',
-      price: '$8.25',
-      description: 'Relieves allergy symptoms',
-      dosage: '1 tablet daily',
-      manufacturer: 'Sanofi',
-      inStock: true,
-      image: '💊'
-    },
-    {
-      id: '6',
-      name: 'Metformin 500mg',
-      category: 'Diabetes',
-      price: '$18.50',
-      description: 'Controls blood sugar levels',
-      dosage: '1 tablet twice daily with meals',
-      manufacturer: 'Merck',
-      inStock: true,
-      image: '💊'
-    },
-    {
-      id: '7',
-      name: 'Lisinopril 10mg',
-      category: 'Blood Pressure',
-      price: '$22.00',
-      description: 'Lowers blood pressure',
-      dosage: '1 tablet daily',
-      manufacturer: 'AstraZeneca',
-      inStock: true,
-      image: '💊'
-    },
-    {
-      id: '8',
-      name: 'Atorvastatin 20mg',
-      category: 'Cholesterol',
-      price: '$25.99',
-      description: 'Lowers cholesterol levels',
-      dosage: '1 tablet daily in evening',
-      manufacturer: 'Pfizer',
-      inStock: true,
-      image: '💊'
-    },
-    {
-      id: '9',
-      name: 'Sertraline 50mg',
-      category: 'Antidepressant',
-      price: '$30.50',
-      description: 'Treats depression and anxiety',
-      dosage: '1 tablet daily',
-      manufacturer: 'Pfizer',
-      inStock: true,
-      image: '💊'
-    },
-    {
-      id: '10',
-      name: 'Albuterol Inhaler',
-      category: 'Asthma',
-      price: '$35.75',
-      description: 'Relieves asthma symptoms',
-      dosage: '2 puffs as needed',
-      manufacturer: 'GlaxoSmithKline',
-      inStock: true,
-      image: '💊'
-    },
-    {
-      id: '11',
-      name: 'Warfarin 5mg',
-      category: 'Blood Thinner',
-      price: '$28.25',
-      description: 'Prevents blood clots',
-      dosage: 'As prescribed by doctor',
-      manufacturer: 'Bristol-Myers Squibb',
-      inStock: true,
-      image: '💊'
-    },
-    {
-      id: '12',
-      name: 'Levothyroxine 50mcg',
-      category: 'Thyroid',
-      price: '$16.80',
-      description: 'Treats hypothyroidism',
-      dosage: '1 tablet daily on empty stomach',
-      manufacturer: 'Abbott',
-      inStock: true,
-      image: '💊'
-    },
-    {
-      id: '13',
-      name: 'Amlodipine 5mg',
-      category: 'Blood Pressure',
-      price: '$19.99',
-      description: 'Lowers blood pressure',
-      dosage: '1 tablet daily',
-      manufacturer: 'Pfizer',
-      inStock: true,
-      image: '💊'
-    },
-    {
-      id: '14',
-      name: 'Metoprolol 25mg',
-      category: 'Heart',
-      price: '$21.50',
-      description: 'Treats high blood pressure and heart conditions',
-      dosage: '1 tablet twice daily',
-      manufacturer: 'AstraZeneca',
-      inStock: true,
-      image: '💊'
-    },
-    {
-      id: '15',
-      name: 'Losartan 50mg',
-      category: 'Blood Pressure',
-      price: '$24.75',
-      description: 'Lowers blood pressure',
-      dosage: '1 tablet daily',
-      manufacturer: 'Merck',
-      inStock: true,
-      image: '💊'
-    },
-    {
-      id: '16',
-      name: 'Simvastatin 20mg',
-      category: 'Cholesterol',
-      price: '$23.40',
-      description: 'Lowers cholesterol levels',
-      dosage: '1 tablet daily in evening',
-      manufacturer: 'Merck',
-      inStock: true,
-      image: '💊'
-    },
-    {
-      id: '17',
-      name: 'Fluoxetine 20mg',
-      category: 'Antidepressant',
-      price: '$27.80',
-      description: 'Treats depression and OCD',
-      dosage: '1 capsule daily',
-      manufacturer: 'Eli Lilly',
-      inStock: true,
-      image: '💊'
-    },
-    {
-      id: '18',
-      name: 'Tramadol 50mg',
-      category: 'Pain Relief',
-      price: '$32.99',
-      description: 'Relieves moderate to severe pain',
-      dosage: '1 tablet every 4-6 hours as needed',
-      manufacturer: 'Janssen',
-      inStock: true,
-      image: '💊'
-    },
-    {
-      id: '19',
-      name: 'Diazepam 5mg',
-      category: 'Anxiety',
-      price: '$29.50',
-      description: 'Treats anxiety and muscle spasms',
-      dosage: 'As prescribed by doctor',
-      manufacturer: 'Roche',
-      inStock: true,
-      image: '💊'
-    },
-    {
-      id: '20',
-      name: 'Morphine 10mg',
-      category: 'Pain Relief',
-      price: '$45.75',
-      description: 'Severe pain relief',
-      dosage: 'As prescribed by doctor',
-      manufacturer: 'Purdue Pharma',
-      inStock: true,
-      image: '💊'
-    }
-  ];
+  React.useEffect(() => {
+    fetchMedicines();
+  }, []);
 
-  const handleSearch = (text: string) => {
-    setSearchQuery(text);
-    if (text.trim() === '') {
-      setFilteredMedicines([]);
-    } else {
-      const filtered = medicines.filter(medicine =>
-        medicine.name.toLowerCase().includes(text.toLowerCase()) ||
-        medicine.category.toLowerCase().includes(text.toLowerCase()) ||
-        medicine.description.toLowerCase().includes(text.toLowerCase())
-      );
-      setFilteredMedicines(filtered);
+  const fetchMedicines = async () => {
+    try {
+      setLoading(true);
+      const data = await medicineService.getMedicines();
+      setMedicines(data);
+      setError(null);
+    } catch (err) {
+      console.error('Error fetching medicines:', err);
+      setError('Failed to load medicines. Please try again later.');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const renderMedicineCard = ({ item }: { item: Medicine }) => (
-    <TouchableOpacity style={styles.medicineCard}>
-      <View style={styles.medicineHeader}>
-        <Text style={styles.medicineImage}>{item.image}</Text>
-        <View style={styles.medicineInfo}>
-          <Text style={styles.medicineName}>{item.name}</Text>
-          <Text style={styles.medicineCategory}>{item.category}</Text>
-          <Text style={styles.medicinePrice}>{item.price}</Text>
-          <View style={styles.stockContainer}>
-            <Text style={[styles.stockStatus, { color: item.inStock ? '#27ae60' : '#e74c3c' }]}>
-              {item.inStock ? '✅ In Stock' : '❌ Out of Stock'}
-            </Text>
-          </View>
-        </View>
-      </View>
-      
-      <View style={styles.medicineDetails}>
-        <Text style={styles.description}>{item.description}</Text>
-        <View style={styles.detailsRow}>
-          <Text style={styles.detailLabel}>Dosage:</Text>
-          <Text style={styles.detailValue}>{item.dosage}</Text>
-        </View>
-        <View style={styles.detailsRow}>
-          <Text style={styles.detailLabel}>Manufacturer:</Text>
-          <Text style={styles.detailValue}>{item.manufacturer}</Text>
-        </View>
-      </View>
-      
-      <TouchableOpacity style={[styles.addToCartButton, !item.inStock && styles.disabledButton]}>
-        <Text style={styles.addToCartText}>Add to Cart</Text>
-      </TouchableOpacity>
-    </TouchableOpacity>
+  const handleAddPress = (medicine: Medicine) => {
+    setSelectedMedicine(medicine);
+    setModalVisible(true);
+  };
+
+  const confirmAdd = (quantity: number) => {
+    // Handle add to cart logic here
+    console.log(`Added to cart: ${quantity}x ${selectedMedicine?.name}`);
+  };
+
+  const filteredMedicines = medicines.filter(medicine =>
+    medicine.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    medicine.category.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const displayMedicines = searchQuery.trim() === '' ? medicines : filteredMedicines;
+  const renderMedicineCard = ({ item }: { item: Medicine }) => {
+    const inStock = item.availability === 'In Stock';
+    return (
+      <View style={styles.medicineCard}>
+        <View style={styles.cardHeader}>
+          <View style={[styles.iconContainer, { backgroundColor: inStock ? '#F0FDF4' : '#FFF5F5' }]}>
+            <Icon name="pill" size={32} color={inStock ? '#10B981' : '#EF4444'} />
+          </View>
+          <View style={styles.headerInfo}>
+            <Text style={styles.medicineName}>{item.name}</Text>
+            <Text style={styles.medicineCategory}>{item.category}</Text>
+          </View>
+          <Text style={styles.medicinePrice}>₹{item.price}</Text>
+        </View>
+
+        <Text style={styles.description} numberOfLines={2}>{item.description || 'No description available'}</Text>
+
+        <View style={styles.detailsGrid}>
+          <View style={styles.detailItem}>
+            <Icon name="clock-outline" size={14} color="#718096" />
+            <Text style={styles.detailText}>{item.dosage || 'N/A'}</Text>
+          </View>
+          <View style={styles.detailItem}>
+            <Icon name="factory" size={14} color="#718096" />
+            <Text style={styles.detailText}>{item.manufacturer || 'N/A'}</Text>
+          </View>
+        </View>
+
+        <View style={styles.cardFooter}>
+          <View style={[styles.stockBadge, { backgroundColor: inStock ? '#DCFCE7' : '#FEE2E2' }]}>
+            <Text style={[styles.stockText, { color: inStock ? '#166534' : '#991B1B' }]}>
+              {item.availability}
+            </Text>
+          </View>
+          <Pressable
+            style={[styles.addButton, !inStock && styles.disabledButton]}
+            disabled={!inStock}
+            onPress={() => handleAddPress(item)}
+          >
+            <Icon name="cart-plus" size={18} color="white" />
+            <Text style={styles.addButtonText}>Add</Text>
+          </Pressable>
+        </View>
+      </View>
+    );
+  };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Medicines</Text>
-        <Text style={styles.subtitle}>Browse and order prescription medications</Text>
-      </View>
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar barStyle="dark-content" backgroundColor="#F7FFF7" />
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
+            <Icon name="arrow-left" size={24} color="#1A535C" />
+          </Pressable>
+          <View style={styles.headerTextContainer}>
+            <Text style={styles.title}>Medicines</Text>
+            <Text style={styles.subtitle}>240+ Products Available</Text>
+          </View>
+        </View>
 
-      <View style={styles.searchContainer}>
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Search medicines by name, category, or description..."
-          placeholderTextColor="#999"
-          value={searchQuery}
-          onChangeText={handleSearch}
-        />
-        <Text style={styles.searchIcon}>🔍</Text>
-      </View>
+        <View style={styles.searchContainer}>
+          <Icon name="magnify" size={22} color="#A0AEC0" style={styles.searchIcon} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search for medicines..."
+            placeholderTextColor="#A0AEC0"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+        </View>
 
-      <FlatList
-        data={displayMedicines}
-        renderItem={renderMedicineCard}
-        keyExtractor={(item) => item.id}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.listContainer}
-      />
+        {loading ? (
+          <View style={styles.centerContainer}>
+            <ActivityIndicator size="large" color="#4ECDC4" />
+            <Text style={styles.loadingText}>Loading medicines...</Text>
+          </View>
+        ) : error ? (
+          <View style={styles.centerContainer}>
+            <Icon name="alert-circle-outline" size={64} color="#EF4444" />
+            <Text style={styles.errorText}>{error}</Text>
+            <Pressable style={styles.retryButton} onPress={fetchMedicines}>
+              <Text style={styles.retryButtonText}>Retry</Text>
+            </Pressable>
+          </View>
+        ) : (
+          <FlatList
+            data={filteredMedicines}
+            renderItem={renderMedicineCard}
+            keyExtractor={(item) => item.id}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.listContent}
+            ListEmptyComponent={
+              <View style={styles.emptyContainer}>
+                <Icon name="pill-off" size={64} color="#E2E8F0" />
+                <Text style={styles.emptyText}>No medicines found</Text>
+              </View>
+            }
+          />
+        )}
+
+        {selectedMedicine && (
+          <ActionModal
+            visible={modalVisible}
+            onClose={() => setModalVisible(false)}
+            title={selectedMedicine.name}
+            subtitle={selectedMedicine.category}
+            price={`₹${selectedMedicine.price}`}
+            description={(selectedMedicine.description || '') + ' ' + (selectedMedicine.dosage || '')}
+            icon="pill"
+            iconColor={selectedMedicine.availability === 'In Stock' ? '#10B981' : '#EF4444'}
+            buttonLabel="Buy Now"
+            secondaryButtonLabel="Add to Cart"
+            onAction={(qty) => console.log('Buying now:', qty)}
+            onSecondaryAction={confirmAdd}
+            showQuantity={true}
+            navigation={navigation}
+            productId={selectedMedicine.id}
+          />
+        )}
+        <FloatingCart />
+      </View>
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#F7FFF7',
+  },
   container: {
     flex: 1,
-    backgroundColor: '#87CEEB',
   },
   header: {
-    padding: 20,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 20,
+    paddingTop: 10,
+    marginBottom: 20,
+    position: 'relative',
+    minHeight: 64,
+  },
+  backButton: {
+    position: 'absolute',
+    left: 20,
+    zIndex: 1,
+    width: 44,
+    height: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  headerTextContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#2c3e50',
-    marginBottom: 5,
+    fontSize: 24,
+    fontWeight: '800',
+    color: '#1A535C',
+    textAlign: 'center',
   },
   subtitle: {
-    fontSize: 16,
-    color: '#7f8c8d',
+    fontSize: 13,
+    color: '#718096',
+    fontWeight: '500',
+    textAlign: 'center',
   },
   searchContainer: {
-    padding: 20,
-    backgroundColor: '#fff',
-    position: 'relative',
-  },
-  searchInput: {
-    height: 50,
-    backgroundColor: '#f8f9fa',
-    borderRadius: 25,
-    paddingHorizontal: 20,
-    paddingRight: 50,
-    fontSize: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'white',
+    marginHorizontal: 20,
+    borderRadius: 14,
+    paddingHorizontal: 16,
+    height: 52,
     borderWidth: 1,
-    borderColor: '#e0e0e0',
+    borderColor: '#E2E8F0',
+    marginBottom: 20,
   },
   searchIcon: {
-    position: 'absolute',
-    right: 35,
-    top: 35,
-    fontSize: 18,
+    marginRight: 12,
   },
-  listContainer: {
-    padding: 20,
+  searchInput: {
+    flex: 1,
+    fontSize: 16,
+    color: '#2D3748',
+  },
+  listContent: {
+    paddingHorizontal: 20,
+    paddingBottom: 24,
   },
   medicineCard: {
-    backgroundColor: '#fff',
-    borderRadius: 15,
-    padding: 20,
-    marginBottom: 15,
+    backgroundColor: 'white',
+    borderRadius: 20,
+    padding: 16,
+    marginBottom: 16,
+    elevation: 4,
     shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
   },
-  medicineHeader: {
+  cardHeader: {
     flexDirection: 'row',
-    marginBottom: 15,
+    alignItems: 'center',
+    marginBottom: 12,
   },
-  medicineImage: {
-    fontSize: 50,
-    marginRight: 15,
+  iconContainer: {
+    width: 52,
+    height: 52,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
   },
-  medicineInfo: {
+  headerInfo: {
     flex: 1,
   },
   medicineName: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#2c3e50',
-    marginBottom: 5,
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#2D3748',
+    marginBottom: 2,
   },
   medicineCategory: {
-    fontSize: 14,
-    color: '#3498db',
+    fontSize: 13,
+    color: '#4ECDC4',
     fontWeight: '600',
-    marginBottom: 3,
   },
   medicinePrice: {
-    fontSize: 16,
-    color: '#27ae60',
-    fontWeight: 'bold',
-    marginBottom: 5,
-  },
-  stockContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  stockStatus: {
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  medicineDetails: {
-    marginBottom: 15,
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#1A535C',
   },
   description: {
     fontSize: 14,
-    color: '#34495e',
-    marginBottom: 10,
+    color: '#718096',
     lineHeight: 20,
+    marginBottom: 16,
   },
-  detailsRow: {
+  detailsGrid: {
     flexDirection: 'row',
-    marginBottom: 5,
+    flexWrap: 'wrap',
+    marginBottom: 16,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#F7FAFC',
+  },
+  detailItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: 20,
+    marginBottom: 4,
+  },
+  detailText: {
+    fontSize: 12,
+    color: '#718096',
+    marginLeft: 6,
+    fontWeight: '500',
+  },
+  cardFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
   },
-  detailLabel: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#7f8c8d',
-    width: 80,
+  stockBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 8,
   },
-  detailValue: {
+  stockText: {
     fontSize: 12,
-    color: '#2c3e50',
-    flex: 1,
+    fontWeight: '700',
   },
-  addToCartButton: {
-    backgroundColor: '#3498db',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 25,
+  addButton: {
+    flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: '#1A535C',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 10,
+  },
+  addButtonText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '700',
+    marginLeft: 6,
   },
   disabledButton: {
-    backgroundColor: '#bdc3c7',
+    backgroundColor: '#E2E8F0',
   },
-  addToCartText: {
-    color: '#fff',
+  emptyContainer: {
+    alignItems: 'center',
+    marginTop: 60,
+  },
+  emptyText: {
+    marginTop: 16,
     fontSize: 16,
+    color: '#A0AEC0',
     fontWeight: '600',
+  },
+  centerContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingBottom: 100,
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 16,
+    color: '#718096',
+    fontWeight: '500',
+  },
+  errorText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: '#EF4444',
+    fontWeight: '600',
+    textAlign: 'center',
+    paddingHorizontal: 40,
+  },
+  retryButton: {
+    marginTop: 20,
+    backgroundColor: '#4ECDC4',
+    paddingHorizontal: 24,
+    paddingVertical: 10,
+    borderRadius: 12,
+  },
+  retryButtonText: {
+    color: 'white',
+    fontWeight: '700',
+    fontSize: 14,
   },
 });
 
-export default BuyMedicine; 
+export default BuyMedicine;

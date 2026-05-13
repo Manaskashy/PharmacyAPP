@@ -1,365 +1,393 @@
-import { useState } from "react";
-import{
-    View,
-    Text,
-    Image,
-    StyleSheet,
-    FlatList,
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
   TextInput,
-  TouchableOpacity,
+  Pressable,
   SafeAreaView,
-}from'react-native';
-
-interface test{
-    id:string,
-    name:string,
-    type:string,
-    description:string,
-    price:string,
-    image:string,
+  StatusBar
+} from 'react-native';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import ActionModal from '../Components/ActionModal';
+import FloatingCart from '../Components/FloatingCart';
+import labtestService, { LabTest } from '../Services/labtestservice';
+import { ActivityIndicator } from 'react-native';
 
 
-};
+// Interface moved to service file
+
 const LabTests = ({ navigation }: { navigation: any }) => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [filteredtests, setFilteredtests] = useState<test[]>([]);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedTest, setSelectedTest] = useState<LabTest | null>(null);
+  const [tests, setTests] = useState<LabTest[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
+  React.useEffect(() => {
+    fetchLabTests();
+  }, []);
 
-  const tests: test[] = [
-    {
-      id: '1',
-      name: 'Complete Blood Count',
-      type: 'Blood Test',
-      description: 'Measures different components of blood including red and white blood cells, hemoglobin, and platelets.',
-      price: '₹400',
-      image: 'https://via.placeholder.com/100x100?text=CBC',
-    },
-    {
-      id: '2',
-      name: 'Liver Function Test',
-      type: 'Blood Test',
-      description: 'Assesses the health of your liver by measuring levels of proteins, liver enzymes, and bilirubin.',
-      price: '₹700',
-      image: 'https://via.placeholder.com/100x100?text=LFT',
-    },
-    {
-      id: '3',
-      name: 'Kidney Function Test',
-      type: 'Blood Test',
-      description: 'Evaluates how well your kidneys are working by measuring levels of urea, creatinine, and other substances.',
-      price: '₹650',
-      image: 'https://via.placeholder.com/100x100?text=KFT',
-    },
-    {
-      id: '4',
-      name: 'Thyroid Profile',
-      type: 'Blood Test',
-      description: 'Checks the function of your thyroid gland by measuring T3, T4, and TSH levels.',
-      price: '₹500',
-      image: 'https://via.placeholder.com/100x100?text=Thyroid',
-    },
-    {
-      id: '5',
-      name: 'Blood Sugar Test',
-      type: 'Blood Test',
-      description: 'Measures the amount of glucose in your blood.',
-      price: '₹150',
-      image: 'https://via.placeholder.com/100x100?text=Sugar',
-    },
-    {
-      id: '6',
-      name: 'Lipid Profile',
-      type: 'Blood Test',
-      description: 'Measures cholesterol and triglyceride levels to assess heart disease risk.',
-      price: '₹800',
-      image: 'https://via.placeholder.com/100x100?text=Lipid',
-    },
-    {
-      id: '7',
-      name: 'Urine Routine',
-      type: 'Urine Test',
-      description: 'Analyzes urine for a wide range of disorders, such as urinary tract infection, kidney disease, and diabetes.',
-      price: '₹200',
-      image: 'https://via.placeholder.com/100x100?text=Urine',
-    },
-    {
-      id: '8',
-      name: 'Vitamin D Test',
-      type: 'Blood Test',
-      description: 'Measures the level of vitamin D in your blood.',
-      price: '₹1200',
-      image: 'https://via.placeholder.com/100x100?text=VitD',
-    },
-    {
-      id: '9',
-      name: 'Vitamin B12 Test',
-      type: 'Blood Test',
-      description: 'Measures the amount of vitamin B12 in your blood.',
-      price: '₹900',
-      image: 'https://via.placeholder.com/100x100?text=VitB12',
-    },
-    {
-      id: '10',
-      name: 'Electrolyte Panel',
-      type: 'Blood Test',
-      description: 'Measures the levels of electrolytes like sodium, potassium, and chloride in your blood.',
-      price: '₹400',
-      image: 'https://via.placeholder.com/100x100?text=Electrolyte',
-    },
-    {
-      id: '11',
-      name: 'HbA1c',
-      type: 'Blood Test',
-      description: 'Measures average blood sugar levels over the past 2-3 months.',
-      price: '₹600',
-      image: 'https://via.placeholder.com/100x100?text=HbA1c',
-    },
-    {
-      id: '12',
-      name: 'Prostate Specific Antigen',
-      type: 'Blood Test',
-      description: 'Screening test for prostate cancer.',
-      price: '₹850',
-      image: 'https://via.placeholder.com/100x100?text=PSA',
-    },
-    {
-      id: '13',
-      name: 'Pregnancy Test',
-      type: 'Urine Test',
-      description: 'Detects the presence of hCG hormone in urine.',
-      price: '₹100',
-      image: 'https://via.placeholder.com/100x100?text=Pregnancy',
-    },
-    {
-      id: '14',
-      name: 'Malaria Test',
-      type: 'Blood Test',
-      description: 'Detects malaria parasites in the blood.',
-      price: '₹350',
-      image: 'https://via.placeholder.com/100x100?text=Malaria',
-    },
-    {
-      id: '15',
-      name: 'Dengue NS1 Antigen',
-      type: 'Blood Test',
-      description: 'Detects dengue virus antigen in the blood.',
-      price: '₹900',
-      image: 'https://via.placeholder.com/100x100?text=Dengue',
-    },
-    {
-      id: '16',
-      name: 'HIV Test',
-      type: 'Blood Test',
-      description: 'Detects antibodies to HIV in the blood.',
-      price: '₹500',
-      image: 'https://via.placeholder.com/100x100?text=HIV',
-    },
-    {
-      id: '17',
-      name: 'Widal Test',
-      type: 'Blood Test',
-      description: 'Detects typhoid and paratyphoid fever.',
-      price: '₹250',
-      image: 'https://via.placeholder.com/100x100?text=Widal',
-    },
-    {
-      id: '18',
-      name: 'Semen Analysis',
-      type: 'Lab Test',
-      description: 'Analyzes semen for fertility assessment.',
-      price: '₹700',
-      image: 'https://via.placeholder.com/100x100?text=Semen',
-    },
-    {
-      id: '19',
-      name: 'Stool Routine',
-      type: 'Lab Test',
-      description: 'Analyzes stool for infections, digestive problems, and other conditions.',
-      price: '₹300',
-      image: 'https://via.placeholder.com/100x100?text=Stool',
-    },
-    {
-      id: '20',
-      name: 'X-Ray Chest',
-      type: 'Imaging',
-      description: 'Imaging test to view the chest, lungs, and heart.',
-      price: '₹1000',
-      image: 'https://via.placeholder.com/100x100?text=XRay',
-    },
-  ];
-
-  const handleSearch = (text: string) => {
-    setSearchQuery(text);
-    if (text.trim() === '') {
-      setFilteredtests([]);
-    } else {
-      const filtered = tests.filter(tests =>
-        tests.name.toLowerCase().includes(text.toLowerCase()) ||
-        tests.description.toLowerCase().includes(text.toLowerCase())
-      );
-      setFilteredtests(filtered);
+  const fetchLabTests = async () => {
+    try {
+      setLoading(true);
+      const data = await labtestService.getLabTests();
+      setTests(data);
+      setError(null);
+    } catch (err) {
+      console.error('Error fetching lab tests:', err);
+      setError('Failed to load lab tests. Please try again later.');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const renderLabTestCard = ({ item }: { item: test }) => (
-    <TouchableOpacity style={styles.labTestCard}>
-      <View style={styles.labTestHeader}>
-        <Image source={{ uri: item.image }} style={styles.labTestImage} />
-        <View style={styles.labTestInfo}>
-          <Text style={styles.labTestName}>{item.name}</Text>
-          <Text style={styles.labTestType}>{item.type}</Text>
-          <Text style={styles.labTestPrice}>{item.price}</Text>
-        </View>
-      </View>
-      <View style={styles.labTestDetails}>
-        <Text style={styles.labTestDescription}>{item.description}</Text>
-      </View>
-      <TouchableOpacity style={styles.bookButton}>
-        <Text style={styles.bookButtonText}>Book Test</Text>
-      </TouchableOpacity>
-    </TouchableOpacity>
+  const handleSelectTest = (test: LabTest) => {
+    setSelectedTest(test);
+    setModalVisible(true);
+  };
+
+  const confirmSelection = (quantity: number) => {
+    // Handle selection logic here
+    console.log(`Test selected: ${selectedTest?.name}`);
+  };
+
+  const getIconForTest = (category: string) => {
+    const cat = category.toLowerCase();
+    if (cat.includes('blood')) return 'water-outline';
+    if (cat.includes('thyroid')) return 'butterfly';
+    if (cat.includes('imaging')) return 'radiology-box';
+    if (cat.includes('liver')) return 'microscope';
+    if (cat.includes('sugar')) return 'water-percent';
+    return 'test-tube';
+  };
+
+  const getTestColor = (category: string) => {
+    const cat = category.toLowerCase();
+    if (cat.includes('blood')) return '#6B46C1';
+    if (cat.includes('thyroid')) return '#9F7AEA';
+    if (cat.includes('imaging')) return '#44337A';
+    if (cat.includes('liver')) return '#805AD5';
+    if (cat.includes('sugar')) return '#B794F4';
+    return '#6B46C1';
+  };
+
+  const filteredTests = tests.filter(test =>
+    test.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    test.type.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const displayTests = searchQuery.trim() === '' ? tests : filteredtests;
+  const renderLabTestCard = ({ item }: { item: LabTest }) => {
+    const testColor = getTestColor(item.category || item.type);
+    return (
+      <View style={styles.card}>
+        <View style={styles.cardHeader}>
+          <View style={[styles.iconContainer, { backgroundColor: `${testColor}15` }]}>
+            <Icon name={getIconForTest(item.category || item.type)} size={30} color={testColor} />
+          </View>
+          <View style={styles.headerInfo}>
+            <Text style={styles.name}>{item.name}</Text>
+            <View style={styles.typeBadge}>
+              <Text style={[styles.typeText, { color: testColor }]}>{item.category || item.type}</Text>
+            </View>
+          </View>
+          <Text style={styles.price}>₹{item.price}</Text>
+        </View>
+
+        <Text style={styles.description} numberOfLines={2}>{item.description || 'No description available'}</Text>
+
+        <View style={styles.cardFooter}>
+          <View style={styles.footerLeft}>
+            <View style={styles.infoRow}>
+              <Icon name="clock-outline" size={14} color="#A0AEC0" />
+              <Text style={styles.infoText}>Report in {item.reportTime || '24 hours'}</Text>
+            </View>
+            <View style={styles.infoRow}>
+              <Icon name="hospital-building" size={14} color="#A0AEC0" />
+              <Text style={styles.infoText} numberOfLines={1}>{item.labName || 'City Labs'}</Text>
+            </View>
+          </View>
+          <Pressable
+            style={styles.bookButton}
+            onPress={() => handleSelectTest(item)}
+          >
+            <Icon name="cart-plus" size={18} color="white" />
+            <Text style={styles.bookButtonText}>Add</Text>
+          </Pressable>
+        </View>
+      </View>
+    );
+  };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Lab Tests</Text>
-        <Text style={styles.subtitle}>Browse and book diagnostic lab tests</Text>
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar barStyle="dark-content" backgroundColor="#F7FFF7" />
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
+            <Icon name="arrow-left" size={24} color="#1A535C" />
+          </Pressable>
+          <View style={styles.headerTextContainer}>
+            <Text style={styles.title}>Lab Diagnostics</Text>
+            <Text style={styles.subtitle}>Precise results, expert care</Text>
+          </View>
+        </View>
+
+        <View style={styles.searchContainer}>
+          <Icon name="magnify" size={22} color="#A0AEC0" style={styles.searchIcon} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search diagnostics..."
+            placeholderTextColor="#A0AEC0"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+        </View>
+
+        {loading ? (
+          <View style={styles.centerContainer}>
+            <ActivityIndicator size="large" color="#4ECDC4" />
+            <Text style={styles.loadingText}>Loading tests...</Text>
+          </View>
+        ) : error ? (
+          <View style={styles.centerContainer}>
+            <Icon name="alert-circle-outline" size={64} color="#EF4444" />
+            <Text style={styles.errorText}>{error}</Text>
+            <Pressable style={styles.retryButton} onPress={fetchLabTests}>
+              <Text style={styles.retryButtonText}>Retry</Text>
+            </Pressable>
+          </View>
+        ) : (
+          <FlatList
+            data={filteredTests}
+            renderItem={renderLabTestCard}
+            keyExtractor={(item) => item.id}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.listContent}
+          />
+        )}
+
+        {selectedTest && (
+          <ActionModal
+            visible={modalVisible}
+            onClose={() => setModalVisible(false)}
+            title={selectedTest.name}
+            subtitle={selectedTest.category || selectedTest.type}
+            price={`₹${selectedTest.price}`}
+            description={(selectedTest.description || '') + (selectedTest.reportTime ? `\nReport Time: ${selectedTest.reportTime}` : '')}
+            icon={getIconForTest(selectedTest.category || selectedTest.type)}
+            iconColor={getTestColor(selectedTest.category || selectedTest.type)}
+            buttonLabel="Buy Now"
+            secondaryButtonLabel="Add to Cart"
+            onAction={(qty) => console.log('Buying now:', qty)}
+            onSecondaryAction={confirmSelection}
+            navigation={navigation}
+            productId={selectedTest.id}
+          />
+        )}
+        <FloatingCart />
       </View>
-      <View style={styles.searchContainer}>
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Search lab tests by name or description..."
-          placeholderTextColor="#999"
-          value={searchQuery}
-          onChangeText={handleSearch}
-        />
-        <Text style={styles.searchIcon}>🔍</Text>
-      </View>
-      <FlatList
-        data={displayTests}
-        renderItem={renderLabTestCard}
-        keyExtractor={(item) => item.id}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.listContainer}
-      />
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#F7FFF7',
+  },
   container: {
     flex: 1,
-    backgroundColor: '#e0f7fa',
   },
   header: {
-    padding: 20,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#2c3e50',
-    marginBottom: 5,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#7f8c8d',
-  },
-  searchContainer: {
-    padding: 20,
-    backgroundColor: '#fff',
-    position: 'relative',
-  },
-  searchInput: {
-    height: 50,
-    backgroundColor: '#f8f9fa',
-    borderRadius: 25,
-    paddingHorizontal: 20,
-    paddingRight: 50,
-    fontSize: 16,
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
-  },
-  searchIcon: {
-    position: 'absolute',
-    right: 35,
-    top: 35,
-    fontSize: 18,
-  },
-  listContainer: {
-    padding: 20,
-  },
-  labTestCard: {
-    backgroundColor: '#fff',
-    borderRadius: 15,
-    padding: 20,
-    marginBottom: 15,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  labTestHeader: {
     flexDirection: 'row',
-    marginBottom: 15,
-  },
-  labTestImage: {
-    width: 60,
-    height: 60,
-    borderRadius: 10,
-    marginRight: 15,
-    backgroundColor: '#e0e0e0',
-  },
-  labTestInfo: {
-    flex: 1,
-  },
-  labTestName: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#2c3e50',
-    marginBottom: 5,
-  },
-  labTestType: {
-    fontSize: 14,
-    color: '#3498db',
-    fontWeight: '600',
-    marginBottom: 3,
-  },
-  labTestPrice: {
-    fontSize: 16,
-    color: '#27ae60',
-    fontWeight: 'bold',
-    marginBottom: 5,
-  },
-  labTestDetails: {
-    marginBottom: 15,
-  },
-  labTestDescription: {
-    fontSize: 14,
-    color: '#34495e',
-    marginBottom: 10,
-    lineHeight: 20,
-  },
-  bookButton: {
-    backgroundColor: '#3498db',
-    paddingVertical: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
     paddingHorizontal: 20,
-    borderRadius: 25,
+    paddingTop: 10,
+    marginBottom: 20,
+    position: 'relative',
+    minHeight: 64,
+  },
+  backButton: {
+    position: 'absolute',
+    left: 20,
+    zIndex: 1,
+    width: 44,
+    height: 44,
+    justifyContent: 'center',
     alignItems: 'center',
   },
-  bookButtonText: {
-    color: '#fff',
+  headerTextContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: '#1A535C',
+    textAlign: 'center',
+  },
+  subtitle: {
+    fontSize: 13,
+    color: '#718096',
+    fontWeight: '500',
+    textAlign: 'center',
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'white',
+    marginHorizontal: 20,
+    borderRadius: 14,
+    paddingHorizontal: 16,
+    height: 52,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    marginBottom: 20,
+  },
+  searchIcon: {
+    marginRight: 12,
+  },
+  searchInput: {
+    flex: 1,
     fontSize: 16,
+    color: '#2D3748',
+  },
+  listContent: {
+    paddingHorizontal: 20,
+    paddingBottom: 24,
+  },
+  card: {
+    backgroundColor: 'white',
+    borderRadius: 20,
+    padding: 18,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#EDF2F7',
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 14,
+  },
+  iconContainer: {
+    width: 52,
+    height: 52,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  headerInfo: {
+    flex: 1,
+  },
+  name: {
+    fontSize: 17,
+    fontWeight: '800',
+    color: '#2D3748',
+    marginBottom: 4,
+  },
+  typeBadge: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 6,
+    backgroundColor: '#F7FAFC',
+  },
+  typeText: {
+    fontSize: 11,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+  },
+  price: {
+    fontSize: 18,
+    fontWeight: '900',
+    color: '#1A535C',
+  },
+  description: {
+    fontSize: 14,
+    color: '#718096',
+    lineHeight: 20,
+    marginBottom: 18,
+  },
+  cardFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingTop: 14,
+    borderTopWidth: 1,
+    borderTopColor: '#F7FAFC',
+  },
+  footerLeft: {
+    flex: 1,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginRight: 8,
+  },
+  infoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  infoText: {
+    fontSize: 12,
+    color: '#A0AEC0',
+    marginLeft: 6,
+    fontWeight: '500',
+  },
+  bookButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 10,
+    backgroundColor: '#44337A',
+    gap: 6,
+  },
+  bookButtonText: {
+    color: 'white',
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  centerContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingBottom: 100,
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 16,
+    color: '#718096',
+    fontWeight: '500',
+  },
+  errorText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: '#EF4444',
     fontWeight: '600',
+    textAlign: 'center',
+    paddingHorizontal: 40,
+  },
+  retryButton: {
+    marginTop: 20,
+    backgroundColor: '#4ECDC4',
+    paddingHorizontal: 24,
+    paddingVertical: 10,
+    borderRadius: 12,
+  },
+  retryButtonText: {
+    color: 'white',
+    fontWeight: '700',
+    fontSize: 14,
   },
 });
 

@@ -5,338 +5,414 @@ import {
   StyleSheet,
   FlatList,
   TextInput,
-  TouchableOpacity,
-  SafeAreaView
+  Pressable,
+  SafeAreaView,
+  StatusBar
 } from 'react-native';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import ActionModal from '../Components/ActionModal';
+import FloatingCart from '../Components/FloatingCart';
+import healthcheckupService, { HealthPackage } from '../Services/healthcheckupservice';
+import { ActivityIndicator } from 'react-native';
 
-interface HealthPackage {
-  id: string;
-  name: string;
-  category: string;
-  price: string;
-  description: string;
-  testsIncluded: string;
-  provider: string;
-  inStock: boolean;
-  image: string; // emoji
-}
 
-const HealthCheckup = () => {
+// Interface moved to service file
+
+const HealthCheckup = ({ navigation }: { navigation: any }) => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [filteredPackages, setFilteredPackages] = useState<HealthPackage[]>([]);
-  const packages: HealthPackage[] = [
-    {
-      id: '1',
-      name: 'Full Body Checkup',
-      category: 'Comprehensive',
-      price: '₹1999',
-      description: 'Covers all major organs and systems. Recommended annually.',
-      testsIncluded: 'CBC, LFT, KFT, Lipid, Thyroid, Sugar, Urine, ECG, X-ray',
-      provider: 'MediCare Labs',
-      inStock: true,
-      image: '🩺',
-    },
-    {
-      id: '2',
-      name: 'Diabetes Check',
-      category: 'Diabetes',
-      price: '₹499',
-      description: 'Essential tests for diabetes screening and monitoring.',
-      testsIncluded: 'Fasting Sugar, HbA1c, Urine Sugar',
-      provider: 'HealthPlus Diagnostics',
-      inStock: true,
-      image: '🍬',
-    },
-    {
-      id: '3',
-      name: 'Heart Check',
-      category: 'Cardiac',
-      price: '₹1299',
-      description: 'Tests for heart health and risk factors.',
-      testsIncluded: 'ECG, Lipid Profile, TMT, Blood Pressure',
-      provider: 'CardioCare',
-      inStock: false,
-      image: '❤️',
-    },
-    {
-      id: '4',
-      name: 'Thyroid Profile',
-      category: 'Hormonal',
-      price: '₹699',
-      description: 'Comprehensive thyroid function tests.',
-      testsIncluded: 'TSH, T3, T4',
-      provider: 'ThyroLab',
-      inStock: true,
-      image: '🦋',
-    },
-    {
-      id: '5',
-      name: 'Kidney Function Test',
-      category: 'Renal',
-      price: '₹799',
-      description: 'Checks kidney health and function.',
-      testsIncluded: 'Urea, Creatinine, Uric Acid, Electrolytes',
-      provider: 'RenalCare',
-      inStock: true,
-      image: '🧪',
-    },
-    {
-      id: '6',
-      name: 'Liver Function Test',
-      category: 'Hepatic',
-      price: '₹899',
-      description: 'Assesses liver health and detects disorders.',
-      testsIncluded: 'SGPT, SGOT, Bilirubin, Albumin',
-      provider: 'LiverPlus',
-      inStock: true,
-      image: '🧬',
-    },
-    {
-      id: '7',
-      name: 'Basic Health Check',
-      category: 'Basic',
-      price: '₹399',
-      description: 'Basic screening for common health issues.',
-      testsIncluded: 'CBC, Blood Sugar, Urine Routine',
-      provider: 'QuickLab',
-      inStock: true,
-      image: '📝',
-    },
-    {
-      id: '8',
-      name: 'Women Wellness Package',
-      category: 'Women',
-      price: '₹1499',
-      description: 'Special package for women’s health.',
-      testsIncluded: 'CBC, Thyroid, Calcium, Vitamin D, Pap Smear',
-      provider: 'FemCare Labs',
-      inStock: true,
-      image: '👩‍⚕️',
-    },
-    {
-      id: '9',
-      name: 'Senior Citizen Checkup',
-      category: 'Senior',
-      price: '₹1799',
-      description: 'Comprehensive tests for elderly health.',
-      testsIncluded: 'CBC, Lipid, Sugar, Kidney, Liver, ECG, Vitamin B12',
-      provider: 'ElderCare Diagnostics',
-      inStock: false,
-      image: '👴',
-    },
-  ];
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedPackage, setSelectedPackage] = useState<HealthPackage | null>(null);
+  const [packages, setPackages] = useState<HealthPackage[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSearch = (text: string) => {
-    setSearchQuery(text);
-    if (text.trim() === '') {
-      setFilteredPackages([]);
-    } else {
-      const filtered = packages.filter(pkg =>
-        pkg.name.toLowerCase().includes(text.toLowerCase()) ||
-        pkg.category.toLowerCase().includes(text.toLowerCase()) ||
-        pkg.description.toLowerCase().includes(text.toLowerCase())
-      );
-      setFilteredPackages(filtered);
+  React.useEffect(() => {
+    fetchPackages();
+  }, []);
+
+  const fetchPackages = async () => {
+    try {
+      setLoading(true);
+      const data = await healthcheckupService.getPackages();
+      setPackages(data);
+      setError(null);
+    } catch (err) {
+      console.error('Error fetching health packages:', err);
+      setError('Failed to load health packages. Please try again later.');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const renderPackageCard = ({ item }: { item: HealthPackage }) => (
-    <TouchableOpacity style={styles.card}>
-      <View style={styles.headerRow}>
-        <Text style={styles.image}>{item.image}</Text>
-        <View style={styles.info}>
-          <Text style={styles.name}>{item.name}</Text>
-          <Text style={styles.category}>{item.category}</Text>
-          <Text style={styles.price}>{item.price}</Text>
-          <View style={styles.stockContainer}>
-            <Text style={[styles.stockStatus, { color: item.inStock ? '#27ae60' : '#e74c3c' }] }>
-              {item.inStock ? '✅ Available' : '❌ Unavailable'}
-            </Text>
-          </View>
-        </View>
-      </View>
-      <View style={styles.details}>
-        <Text style={styles.description}>{item.description}</Text>
-        <View style={styles.detailsRow}>
-          <Text style={styles.detailLabel}>Tests Included:</Text>
-          <Text style={styles.detailValue}>{item.testsIncluded}</Text>
-        </View>
-        <View style={styles.detailsRow}>
-          <Text style={styles.detailLabel}>Provider:</Text>
-          <Text style={styles.detailValue}>{item.provider}</Text>
-        </View>
-      </View>
-      <TouchableOpacity style={[styles.addToCartButton, !item.inStock && styles.disabledButton]}>
-        <Text style={styles.addToCartText}>Add to Cart</Text>
-      </TouchableOpacity>
-    </TouchableOpacity>
+  const handleBookPackage = (pkg: HealthPackage) => {
+    setSelectedPackage(pkg);
+    setModalVisible(true);
+  };
+
+  const confirmBooking = (quantity: number) => {
+    // Handle booking logic
+    console.log(`Package booked: ${selectedPackage?.name}`);
+  };
+
+  const getPackageIcon = (category: string) => {
+    const cat = category.toLowerCase();
+    if (cat.includes('comprehensive')) return 'shield-account';
+    if (cat.includes('diabetes')) return 'water';
+    if (cat.includes('cardiac')) return 'heart-pulse';
+    if (cat.includes('hormonal')) return 'butterfly';
+    if (cat.includes('kidney')) return 'opacity';
+    return 'bottle-tonic-plus';
+  };
+
+  const getPackageColor = (category: string) => {
+    const cat = category.toLowerCase();
+    if (cat.includes('comprehensive')) return '#4ECDC4';
+    if (cat.includes('diabetes')) return '#FF6B6B';
+    if (cat.includes('cardiac')) return '#FF4E50';
+    if (cat.includes('hormonal')) return '#45B7D1';
+    return '#4ECDC4';
+  };
+
+  const filteredPackages = packages.filter(pkg =>
+    pkg.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    pkg.category.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const displayPackages = searchQuery.trim() === '' ? packages : filteredPackages;
+  const renderPackageCard = ({ item }: { item: HealthPackage }) => {
+    const pkgColor = getPackageColor(item.category);
+    const inStock = item.availability === 'Available';
+    const testsStr = item.includesTests?.join(', ') || 'Various diagnostic tests';
+
+    return (
+      <View style={styles.card}>
+        <View style={styles.cardHeader}>
+          <View style={[styles.iconContainer, { backgroundColor: `${pkgColor}15` }]}>
+            <Icon name={getPackageIcon(item.category)} size={32} color={pkgColor} />
+          </View>
+          <View style={styles.headerInfo}>
+            <Text style={styles.name}>{item.name}</Text>
+            <Text style={styles.category}>{item.category}</Text>
+          </View>
+          <Text style={styles.price}>₹{item.price}</Text>
+        </View>
+
+        <Text style={styles.description}>{item.description || 'Complete health screening package for comprehensive wellness monitoring.'}</Text>
+
+        <View style={styles.testSection}>
+          <Text style={styles.testTitle}>Includes {item.includesTests?.length || 0} Tests:</Text>
+          <Text style={styles.tests}>{testsStr}</Text>
+        </View>
+
+        <View style={styles.cardFooter}>
+          <View style={styles.footerLeft}>
+            <View style={styles.providerInfo}>
+              <Icon name="hospital-building" size={14} color="#718096" />
+              <Text style={styles.providerName}>{item.labName || 'Medicare Labs'}</Text>
+            </View>
+            <View style={[styles.stockBadge, { backgroundColor: inStock ? '#E6FFFA' : '#FFF5F5' }]}>
+              <Text style={[styles.stockText, { color: inStock ? '#2C7A7B' : '#C53030' }]}>
+                {item.availability}
+              </Text>
+            </View>
+          </View>
+          <Pressable
+            style={[styles.bookButton, !inStock && styles.disabledButton]}
+            disabled={!inStock}
+            onPress={() => handleBookPackage(item)}
+          >
+            <Icon name="cart-plus" size={18} color="white" />
+            <Text style={styles.bookButtonText}>Add</Text>
+          </Pressable>
+        </View>
+      </View>
+    );
+  };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Health Checkup Packages</Text>
-        <Text style={styles.subtitle}>Choose from a variety of health checkup packages</Text>
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar barStyle="dark-content" backgroundColor="#F7FFF7" />
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
+            <Icon name="arrow-left" size={24} color="#1A535C" />
+          </Pressable>
+          <View style={styles.headerTextContainer}>
+            <Text style={styles.title}>Health Packages</Text>
+            <Text style={styles.subtitle}>Preventive diagnostics for you</Text>
+          </View>
+        </View>
+
+        <View style={styles.searchContainer}>
+          <Icon name="magnify" size={22} color="#A0AEC0" style={styles.searchIcon} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search packages..."
+            placeholderTextColor="#A0AEC0"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+        </View>
+
+        {loading ? (
+          <View style={styles.centerContainer}>
+            <ActivityIndicator size="large" color="#4ECDC4" />
+            <Text style={styles.loadingText}>Loading packages...</Text>
+          </View>
+        ) : error ? (
+          <View style={styles.centerContainer}>
+            <Icon name="alert-circle-outline" size={64} color="#EF4444" />
+            <Text style={styles.errorText}>{error}</Text>
+            <Pressable style={styles.retryButton} onPress={fetchPackages}>
+              <Text style={styles.retryButtonText}>Retry</Text>
+            </Pressable>
+          </View>
+        ) : (
+          <FlatList
+            data={filteredPackages}
+            renderItem={renderPackageCard}
+            keyExtractor={(item) => item.id}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.listContent}
+          />
+        )}
+
+        {selectedPackage && (
+          <ActionModal
+            visible={modalVisible}
+            onClose={() => setModalVisible(false)}
+            title={selectedPackage.name}
+            subtitle={selectedPackage.category}
+            price={`₹${selectedPackage.price}`}
+            description={`${selectedPackage.description || 'Comprehensive health checkup package.'}\n\nIncludes: ${selectedPackage.includesTests?.join(', ') || 'N/A'}`}
+            icon={getPackageIcon(selectedPackage.category)}
+            iconColor={getPackageColor(selectedPackage.category)}
+            buttonLabel="Buy Now"
+            secondaryButtonLabel="Add to Cart"
+            onAction={(qty) => console.log('Buying now:', qty)}
+            onSecondaryAction={confirmBooking}
+            navigation={navigation}
+          />
+        )}
+        <FloatingCart />
       </View>
-      <View style={styles.searchContainer}>
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Search packages by name, category, or description..."
-          placeholderTextColor="#999"
-          value={searchQuery}
-          onChangeText={handleSearch}
-        />
-        <Text style={styles.searchIcon}>🔍</Text>
-      </View>
-      <FlatList
-        data={displayPackages}
-        renderItem={renderPackageCard}
-        keyExtractor={(item) => item.id}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.listContainer}
-      />
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#F7FFF7',
+  },
   container: {
     flex: 1,
-    backgroundColor: '#87CEEB',
   },
   header: {
-    padding: 20,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 20,
+    paddingTop: 10,
+    marginBottom: 20,
+    position: 'relative',
+    minHeight: 64,
+  },
+  backButton: {
+    position: 'absolute',
+    left: 20,
+    zIndex: 1,
+    width: 44,
+    height: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  headerTextContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#2c3e50',
-    marginBottom: 5,
+    fontSize: 24,
+    fontWeight: '800',
+    color: '#1A535C',
+    textAlign: 'center',
   },
   subtitle: {
-    fontSize: 16,
-    color: '#7f8c8d',
+    fontSize: 13,
+    color: '#718096',
+    fontWeight: '500',
+    textAlign: 'center',
   },
   searchContainer: {
-    padding: 20,
-    backgroundColor: '#fff',
-    position: 'relative',
-  },
-  searchInput: {
-    height: 50,
-    backgroundColor: '#f8f9fa',
-    borderRadius: 25,
-    paddingHorizontal: 20,
-    paddingRight: 50,
-    fontSize: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'white',
+    marginHorizontal: 20,
+    borderRadius: 14,
+    paddingHorizontal: 16,
+    height: 52,
     borderWidth: 1,
-    borderColor: '#e0e0e0',
+    borderColor: '#E2E8F0',
+    marginBottom: 20,
   },
   searchIcon: {
-    position: 'absolute',
-    right: 35,
-    top: 35,
-    fontSize: 18,
+    marginRight: 12,
   },
-  listContainer: {
-    padding: 20,
+  searchInput: {
+    flex: 1,
+    fontSize: 16,
+    color: '#2D3748',
+  },
+  listContent: {
+    paddingHorizontal: 20,
+    paddingBottom: 24,
   },
   card: {
-    backgroundColor: '#fff',
-    borderRadius: 15,
+    backgroundColor: 'white',
+    borderRadius: 24,
     padding: 20,
-    marginBottom: 15,
+    marginBottom: 16,
+    elevation: 4,
     shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.06,
+    shadowRadius: 10,
   },
-  headerRow: {
+  cardHeader: {
     flexDirection: 'row',
-    marginBottom: 15,
+    alignItems: 'center',
+    marginBottom: 16,
   },
-  image: {
-    fontSize: 50,
-    marginRight: 15,
+  iconContainer: {
+    width: 56,
+    height: 56,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
   },
-  info: {
+  headerInfo: {
     flex: 1,
   },
   name: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#2c3e50',
-    marginBottom: 5,
+    fontWeight: '800',
+    color: '#2D3748',
+    marginBottom: 2,
   },
   category: {
-    fontSize: 14,
-    color: '#3498db',
-    fontWeight: '600',
-    marginBottom: 3,
+    fontSize: 13,
+    color: '#4ECDC4',
+    fontWeight: '700',
   },
   price: {
-    fontSize: 16,
-    color: '#27ae60',
-    fontWeight: 'bold',
-    marginBottom: 5,
-  },
-  stockContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  stockStatus: {
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  details: {
-    marginBottom: 15,
+    fontSize: 20,
+    fontWeight: '900',
+    color: '#1A535C',
   },
   description: {
     fontSize: 14,
-    color: '#34495e',
-    marginBottom: 10,
+    color: '#718096',
     lineHeight: 20,
+    marginBottom: 16,
   },
-  detailsRow: {
+  testSection: {
+    backgroundColor: '#F7FAFC',
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 16,
+  },
+  testTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#4A5568',
+    marginBottom: 4,
+  },
+  tests: {
+    fontSize: 12,
+    color: '#718096',
+    lineHeight: 18,
+  },
+  cardFooter: {
     flexDirection: 'row',
-    marginBottom: 5,
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#F7FAFC',
+  },
+  footerLeft: {
+    gap: 6,
+  },
+  providerInfo: {
+    flexDirection: 'row',
     alignItems: 'center',
   },
-  detailLabel: {
+  providerName: {
     fontSize: 12,
+    color: '#A0AEC0',
+    marginLeft: 6,
     fontWeight: '600',
-    color: '#7f8c8d',
-    width: 110,
   },
-  detailValue: {
-    fontSize: 12,
-    color: '#2c3e50',
-    flex: 1,
+  stockBadge: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
   },
-  addToCartButton: {
-    backgroundColor: '#3498db',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 25,
+  stockText: {
+    fontSize: 10,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+  },
+  bookButton: {
+    flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: '#1A535C',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 12,
+    gap: 6,
+  },
+  bookButtonText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '700',
   },
   disabledButton: {
-    backgroundColor: '#bdc3c7',
+    backgroundColor: '#E2E8F0',
   },
-  addToCartText: {
-    color: '#fff',
+  centerContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingBottom: 100,
+  },
+  loadingText: {
+    marginTop: 12,
     fontSize: 16,
+    color: '#718096',
+    fontWeight: '500',
+  },
+  errorText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: '#EF4444',
     fontWeight: '600',
+    textAlign: 'center',
+    paddingHorizontal: 40,
+  },
+  retryButton: {
+    marginTop: 20,
+    backgroundColor: '#4ECDC4',
+    paddingHorizontal: 24,
+    paddingVertical: 10,
+    borderRadius: 12,
+  },
+  retryButtonText: {
+    color: 'white',
+    fontWeight: '700',
+    fontSize: 14,
   },
 });
 
-export default HealthCheckup; 
+export default HealthCheckup;

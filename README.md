@@ -1,97 +1,159 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# Pharmacy App 🏥
 
-# Getting Started
+A premium, all-in-one Healthcare and Pharmacy mobile application built with **React Native** and powered by **AI**. This application provides a seamless experience for users to manage their health, order medicines, consult doctors, and track their medical records, with an integrated AI Health Assistant for personalized medical insights.
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+---
 
-## Step 1: Start Metro
+## ✨ Key Features
 
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
+### 🤖 AI Health Assistant (PharmaChatbot)
+- **Symptom Analysis:** Get instant insights based on your symptoms.
+- **Personalized Advice:** Context-aware responses using your profile biometrics (age, weight, height).
+- **RAG Powered:** Uses Retrieval-Augmented Generation with a curated medical knowledge base for accurate information.
+- **Natural Language Interface:** Chat naturally with our Gemini-powered medical assistant.
 
-To start the Metro dev server, run the following command from the root of your React Native project:
+### 🛒 E-Commerce & Pharmacy
+- **Medicine Marketplace:** Browse and search for a wide range of medicines and healthcare products.
+- **Vitamins & Supplements:** Dedicated section for wellness products.
+- **Surgical Equipment:** Specialized store for medical tools and equipment.
+- **Smart Cart:** Manage items with ease using our `CartContext` for persistent shopping sessions.
+- **Order Tracking:** Real-time updates on your order status from placement to delivery.
 
-```sh
-# Using npm
-npm start
+### 🩺 Healthcare Services
+- **Doctor Consultation:** Connect with healthcare professionals directly through the app.
+- **Lab Tests & Health Checkups:** Schedule diagnostic tests and comprehensive health assessments.
+- **Ambulance Service:** Quick access to emergency medical transport.
+- **Home Care:** Professional healthcare services at your doorstep.
 
-# OR using Yarn
-yarn start
+### 📁 Health Vault (Personal Records)
+- **Document Management:** Securely upload and store medical prescriptions, reports, and insurance documents.
+- **File Picker Integration:** Easy uploads using `react-native-document-picker`.
+- **Categorization:** Keep your health history organized and accessible.
+
+### 👤 Profile & Personalization
+- **Address Book:** Manage multiple delivery locations.
+- **Payment Methods:** Securely store and manage credit/debit cards.
+- **Insurance Details:** Keep your policy information handy.
+- **Notifications Hub:** Real-time alerts for orders, payments, and reminders.
+
+---
+
+## 🚀 Tech Stack
+
+### Frontend (Mobile App)
+- **Core:** [React Native](https://reactnative.dev/) (v0.79.2)
+- **Language:** TypeScript
+- **Navigation:** [React Navigation Stack](https://reactnavigation.org/)
+- **State Management:** React Context API (Cart, Orders, Notifications)
+- **Persistence:** [AsyncStorage](https://react-native-async-storage.github.io/async-storage/)
+- **Icons:** React Native Vector Icons
+- **Animations:** [React Native Reanimated](https://docs.swmansion.com/react-native-reanimated/) & Gesture Handler
+- **Styling:** Premium Custom UI Components
+
+### Backend (AI Services)
+- **Framework:** [FastAPI](https://fastapi.tiangolo.com/) (Python)
+- **AI Model:** [Google Gemini 1.5 Pro/Flash](https://deepmind.google/technologies/gemini/)
+- **Orchestration:** [LangChain](https://www.langchain.com/)
+- **Vector Database:** [ChromaDB](https://www.trychroma.com/)
+- **Embeddings:** Google Generative AI Embeddings
+
+---
+
+## 📁 Project Structure
+
+```text
+Pharmacy/
+├── PharmaChatbot/       # AI Backend Service (FastAPI, RAG Engine)
+├── Components/          # Reusable UI components (Modals, Floating buttons)
+├── Context/             # Global state management (Cart, Notifications, Orders)
+├── Screens/             # Main application screens (Home, Profile, HealthVault, etc.)
+├── Services/            # API integration and external services
+├── assets/              # Images, fonts, and static resources
+├── __tests__/           # Unit and integration tests
+├── android/             # Android native code
+├── ios/                 # iOS native code
+├── App.tsx              # Main entry point and Navigation Root
+└── package.json         # Frontend dependencies and scripts
 ```
 
-## Step 2: Build and run your app
+---
 
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
+## 🛠️ Getting Started
 
-### Android
+### 📱 Frontend Setup
 
-```sh
-# Using npm
-npm run android
+1. **Clone the repository:**
+   ```bash
+   git clone <repository-url>
+   cd Pharmacy
+   ```
 
-# OR using Yarn
-yarn android
-```
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
 
-### iOS
+3. **iOS Setup (macOS only):**
+   ```bash
+   cd ios
+   pod install
+   cd ..
+   ```
 
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
+4. **Run the App:**
+   - Start Metro: `npm start`
+   - Android: `npm run android`
+   - iOS: `npm run ios`
 
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
+### 🤖 AI Backend Setup (PharmaChatbot)
 
-```sh
-bundle install
-```
+1. **Navigate to the backend folder:**
+   ```bash
+   cd PharmaChatbot
+   ```
 
-Then, and every time you update your native dependencies, run:
+2. **Setup Virtual Environment:**
+   ```bash
+   python -m venv venv
+   # Windows
+   .\venv\Scripts\Activate.ps1
+   # macOS/Linux
+   source venv/bin/activate
+   ```
 
-```sh
-bundle exec pod install
-```
+3. **Install Dependencies:**
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
+4. **Environment Variables:**
+   Create a `.env` file in the `PharmaChatbot` directory with:
+   ```env
+   GOOGLE_API_KEY=your_gemini_api_key
+   ```
 
-```sh
-# Using npm
-npm run ios
+5. **Seed Knowledge Base:**
+   ```bash
+   python seed_knowledge.py
+   ```
 
-# OR using Yarn
-yarn ios
-```
+6. **Run the Server:**
+   ```bash
+   uvicorn main:app --reload --host 0.0.0.0 --port 8000
+   ```
 
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
+---
 
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
+## 📱 Screenshots
 
-## Step 3: Modify your app
+| Home & Search | AI Assistant | Health Vault |
+|:---:|:---:|:---:|
+| *[Add Screenshot]* | *[Add Screenshot]* | *[Add Screenshot]* |
 
-Now that you have successfully run the app, let's make changes!
+---
 
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
+## 📄 License
+This project is private and intended for internal use.
 
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
-
-- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
-- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
-
-## Congratulations! :tada:
-
-You've successfully run and modified your React Native App. :partying_face:
-
-### Now what?
-
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
-
-# Troubleshooting
-
-If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
-
-# Learn More
-
-To learn more about React Native, take a look at the following resources:
-
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+---
+*Built with ❤️ for better healthcare accessibility.*

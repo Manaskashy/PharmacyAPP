@@ -73,3 +73,16 @@ yarn-error.log
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+
+# Custom ignores
+.env
+hs_err_pid*.log
+replay_pid*.log
+
+# Python / Chatbot specific
+venv/
+env/
+__pycache__/
+*.pyc
+chroma_db/
+scratch/
